@@ -3,7 +3,7 @@ require_once "confing.php";
 
 header('Content-Type: application/json');
 
-$resource = $_GET["resource"];
+$resource = $_GET["resource"] ?? null;
 $filterType = $_GET["filterType"] ?? null;
 processResourceType($resource, $filterType, $db);
 function processGetType($db)
@@ -70,9 +70,18 @@ WHERE t.id = {$filterType}";
 
 function processCart($db)
 {
-    $article = $_GET["articleID"];
+    $article = $_GET["articleID"] ?? null;
     $method = $_SERVER["REQUEST_METHOD"];
-    echo $method;
+    $orderID = $_GET["orderID"] ?? 5; // weil Sie nicht gesagt haben dass zu wecher OrderId gehört, ich habe vorgenommen, es es nicht gibt. nimmt es ID 5
+
+    if($method == "POST" && isset($article)) {
+
+$sql = $db->prepare("SELECT amount from order_positions where orders_id = ? AND product_id = ?");
+$sql->execute([$orderID, $article]);
+$row = $sql->fetch(PDO::FETCH_ASSOC);
+echo $row;
+$update = "INSERT INTO orders (articleID, method, orderID) VALUES (?, ?, ?)";
+   }
 }
 
 function processResourceType($resource, $filterType, $db)
