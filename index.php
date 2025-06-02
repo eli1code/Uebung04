@@ -74,14 +74,11 @@ function processCart($db)
     $method = $_SERVER["REQUEST_METHOD"];
     $orderID = $_GET["orderID"] ?? 5; // weil Sie nicht gesagt haben dass zu wecher OrderId gehört, ich habe vorgenommen, es es nicht gibt. nimmt es ID 5
 
-    if($method == "POST" && isset($article)) {
+    if ($method == "POST" && isset($article)) {
+        createOrUpdateOrder($db, $orderID, $article);
 
-$sql = $db->prepare("SELECT amount from order_positions where orders_id = ? AND product_id = ?");
-$sql->execute([$orderID, $article]);
-$row = $sql->fetch(PDO::FETCH_ASSOC);
-echo $row;
-$update = "INSERT INTO orders (articleID, method, orderID) VALUES (?, ?, ?)";
-   }
+
+    }
 }
 
 function processResourceType($resource, $filterType, $db)
@@ -97,5 +94,28 @@ function processResourceType($resource, $filterType, $db)
         processCart($db);
     }
 
+}
+
+function createOrUpdateOrder($db, $orderID, $article)
+{
+    $sql = $db->prepare("SELECT amount from order_positions where orders_id = ? AND product_id = ?");
+    $sql->execute([$orderID, $article]);
+    $row = $sql->fetch(PDO::FETCH_ASSOC);
+    if ($row) {
+        $newAmount = $row["amount"] + 1;
+        $update = $db->prepare("UPDATE order_positions SET amount = ? WHERE orders_id = ? AND product_id = ?");
+        $update->execute([$newAmount, $orderID, $article]);
+        echo json_encode([
+            "status" => "ok"
+        ]);
+    } else {
+        $insert = "INSERT INTO order_positions (orders_id, product_id, amount) VALUES (?, ?, ?)";
+        $stmt = $db->prepare($insert);
+        $stmt->execute([$orderID, $article, 1]);
+        echo json_encode([
+            "status" => "ok"
+        ]);
+
+    }
 }
 
