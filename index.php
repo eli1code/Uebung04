@@ -4,7 +4,7 @@ require_once "confing.php";
 header('Content-Type: application/json');
 
 $resource = $_GET["resource"];
-$filterType = $_GET["filterType"];
+$filterType = $_GET["filterType"] ?? null;
 processResourceType($resource, $filterType, $db);
 function processGetType($db)
 {
